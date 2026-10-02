@@ -57,6 +57,29 @@ function test_bb_clean_package_make {
 }
 bb_declare_test test_bb_clean_package_make
 
+function test_bb_clean_package_make_fails {
+	bb_use_test_project foo_project
+	asserteq $? 0
+	bb_set_project_current_target bar
+	asserteq $? 0
+	bb_build_package "baz_package"
+	asserteq $? 0
+	rm "${BB_TARGET_SRC_DIR}/baz_package/Makefile"
+	bb_clean_package "baz_package" > /dev/null 2>&1
+	asserteq $? 2
+}
+bb_declare_test test_bb_clean_package_make_fails
+
+function test_bb_clean_package_make_not_cloned {
+	bb_use_test_project foo_project
+	asserteq $? 0
+	bb_set_project_current_target bar
+	asserteq $? 0
+	bb_clean_package "baz_package"
+	asserteq $? 0
+}
+bb_declare_test test_bb_clean_package_make_not_cloned
+
 function test_bb_clean_package_custom {
 	bb_use_test_project bar_project
 	asserteq $? 0

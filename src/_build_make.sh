@@ -53,6 +53,7 @@ bb_exportfn bb_make_build_fast
 ## @return 0 on success
 function bb_make_clean () (
 	local pkg_dir=${1}
+	[ -d ${pkg_dir} ] || return 0
 	cd ${pkg_dir}
 	[ $? -ne 0 ] && return 1
 	make clean

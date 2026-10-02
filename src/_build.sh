@@ -105,7 +105,7 @@ bb_exportfn bb_build_package_fast
 ## @env `BB_PROJECT_DIR`: current target path
 ## @env `BB_TARGET_SRC_DIR`: path where cloned package are stored
 ## @return 1 if package doesn't exists, or if build mode clean operation is not
-## supported, 0 on success
+## supported, 2 if the clean operation failed, 0 on success
 function bb_clean_package () (
 	local pkg_name=${1}
 	bb_load_package ${pkg_name}
@@ -121,8 +121,8 @@ function bb_clean_package () (
 		echo "Unsupported clean operation for this build mode: ${clean_cmd}"
 		return 1
 	fi
-	${clean_cmd} "${BB_TARGET_SRC_DIR}/${pkg_dir}" < /dev/null
-	return $?
+	${clean_cmd} "${BB_TARGET_SRC_DIR}/${pkg_dir}" < /dev/null || return 2
+	return 0
 )
 bb_exportfn bb_clean_package
 
@@ -131,15 +131,20 @@ bb_exportfn bb_clean_package
 ## project.
 ## Installed files in target `build` directory are not affected.
 ## No error is returned if the package is not already built or not cloned.
+## A failing clean operation only prints a warning, sources being removed anyway.
 ## @param Package name
 ## @env `BB_TARGET_SRC_DIR`: path where cloned package are stored
-## @return 0 on suuccess
+## @return 0 on success
 function bb_wipe_package () (
 	local pkg_name=${1}
 	local pkg_dir=$(bb_escape_package_name ${pkg_name})
 	# remove built files
 	bb_clean_package ${pkg_name}
-	[ $? -ne 0 ] && return 1
+	case $? in
+		0) ;;
+		2) >&2 echo "Warning: unable to clean ${pkg_name}, removing its sources anyway" ;;
+		*) return 1 ;;
+	esac
 	# remove sources
 	if [ -d ${BB_PROJECT_SRC_DIR}/${pkg_dir} ]; then
 		bb_trash ${BB_PROJECT_SRC_DIR}/${pkg_dir} > /dev/null

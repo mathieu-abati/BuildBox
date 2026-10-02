@@ -70,6 +70,35 @@ function test_bb_wipe_package_make {
 }
 bb_declare_test test_bb_wipe_package_make
 
+function test_bb_wipe_package_make_clean_fails {
+	bb_use_test_project foo_project
+	asserteq $? 0
+	bb_set_project_current_target bar
+	asserteq $? 0
+	bb_build_package "baz_package"
+	asserteq $? 0
+	# No more Makefile: 'make clean' fails
+	rm "${BB_TARGET_SRC_DIR}/baz_package/Makefile"
+	err="$(bb_wipe_package "baz_package" 2>&1 >/dev/null)"
+	asserteq $? 0
+	assertn "$(echo "${err}" | grep "Warning: unable to clean baz_package")"
+	assert_does_not_exists "${BB_PROJECT_SRC_DIR}/baz_package"
+	assert_does_not_exists "${BB_TARGET_SRC_DIR}/baz_package"
+	assertnl "${BB_TARGET_SRC_DIR}/baz_package.sources"
+}
+bb_declare_test test_bb_wipe_package_make_clean_fails
+
+function test_bb_wipe_package_make_not_cloned {
+	bb_use_test_project foo_project
+	asserteq $? 0
+	bb_set_project_current_target bar
+	asserteq $? 0
+	err="$(bb_wipe_package "baz_package" 2>&1 >/dev/null)"
+	asserteq $? 0
+	assertz "${err}"
+}
+bb_declare_test test_bb_wipe_package_make_not_cloned
+
 function test_bb_wipe_package_custom {
 	bb_use_test_project bar_project
 	asserteq $? 0
