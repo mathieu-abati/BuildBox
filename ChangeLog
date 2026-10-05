@@ -1,3 +1,7 @@
+2.2.1 - 10/5/2026
+- Build: better handling of failing clean with make build mode
+- Doc: fix remaining 1.x branch residuals formulations
+
 2.2.0 - 9/24/2026
 - Remove branch from prebuilt targets remote path
 - Quote the arguments the target dispatcher forwards
